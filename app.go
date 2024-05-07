@@ -8,6 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
+var ProduktyEndpoint = "/produkty/:id"
+var BrakProduktuMessage = "Brak podanego produktu"
+
 type Produkt struct {
 	gorm.Model
 	Nazwa       string
@@ -45,11 +48,11 @@ func setupGetRouts(e *echo.Echo, db *gorm.DB) {
 		return c.JSON(http.StatusOK, produkty)
 	})
 
-	e.GET("/produkty/:id", func(c echo.Context) error {
+	e.GET(ProduktyEndpoint, func(c echo.Context) error {
 		id := c.Param("id")
 		var produkt Produkt
 		if err := db.First(&produkt, id).Error; err != nil {
-			return c.JSON(http.StatusNotFound, "Brak podanego produktu")
+			return c.JSON(http.StatusNotFound, BrakProduktuMessage)
 		}
 		return c.JSON(http.StatusOK, produkt)
 	})
@@ -78,11 +81,11 @@ func setupRoutes(e *echo.Echo, db *gorm.DB) {
 		return c.JSON(http.StatusCreated, produkt)
 	})
 
-	e.PUT("/produkty/:id", func(c echo.Context) error {
+	e.PUT(ProduktyEndpoint, func(c echo.Context) error {
 		id := c.Param("id")
 		var produkt Produkt
 		if err := db.First(&produkt, id).Error; err != nil {
-			return c.JSON(http.StatusNotFound, "Brak podanego produktu")
+			return c.JSON(http.StatusNotFound, BrakProduktuMessage)
 		}
 		if err := c.Bind(&produkt); err != nil {
 			return err
@@ -91,11 +94,11 @@ func setupRoutes(e *echo.Echo, db *gorm.DB) {
 		return c.JSON(http.StatusOK, produkt)
 	})
 
-	e.DELETE("/produkty/:id", func(c echo.Context) error {
+	e.DELETE(ProduktyEndpoint, func(c echo.Context) error {
 		id := c.Param("id")
 		var produkt Produkt
 		if err := db.First(&produkt, id).Error; err != nil {
-			return c.JSON(http.StatusNotFound, "Brak podanego produktu")
+			return c.JSON(http.StatusNotFound, BrakProduktuMessage)
 		}
 		db.Delete(&produkt)
 		return c.NoContent(http.StatusNoContent)
