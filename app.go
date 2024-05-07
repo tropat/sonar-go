@@ -36,7 +36,7 @@ func initializeDB() (*gorm.DB, error) {
 	return db, nil
 }
 
-func setupRoutes(e *echo.Echo, db *gorm.DB) {
+func setupGetRouts(e *echo.Echo, db *gorm.DB) {
 	e.GET("/produkty", func(c echo.Context) error {
 		var produkty []Produkt
 		if err := db.Find(&produkty).Error; err != nil {
@@ -53,6 +53,20 @@ func setupRoutes(e *echo.Echo, db *gorm.DB) {
 		}
 		return c.JSON(http.StatusOK, produkt)
 	})
+
+	e.GET("/koszyk/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		var koszyk Koszyk
+		if err := db.Preload("Produkty").First(&koszyk, id).Error; err != nil {
+			return c.JSON(http.StatusNotFound, "Koszyk nie znaleziony")
+		}
+		return c.JSON(http.StatusOK, koszyk)
+	})
+}
+
+func setupRoutes(e *echo.Echo, db *gorm.DB) {
+
+	setupGetRouts(e, db)
 
 	e.POST("/produkty", func(c echo.Context) error {
 		produkt := new(Produkt)
@@ -85,15 +99,6 @@ func setupRoutes(e *echo.Echo, db *gorm.DB) {
 		}
 		db.Delete(&produkt)
 		return c.NoContent(http.StatusNoContent)
-	})
-
-	e.GET("/koszyk/:id", func(c echo.Context) error {
-		id := c.Param("id")
-		var koszyk Koszyk
-		if err := db.Preload("Produkty").First(&koszyk, id).Error; err != nil {
-			return c.JSON(http.StatusNotFound, "Koszyk nie znaleziony")
-		}
-		return c.JSON(http.StatusOK, koszyk)
 	})
 
 	e.PUT("/koszyk/:id", func(c echo.Context) error {
