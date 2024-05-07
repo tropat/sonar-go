@@ -32,7 +32,10 @@ func main() {
 	if err != nil {
 		panic("Blad polaczenia z baza danych")
 	}
-	db.AutoMigrate(&Produkt{}, &Koszyk{}, &Kategoria{})
+	err = db.AutoMigrate(&Produkt{}, &Koszyk{}, &Kategoria{})
+	if err != nil {
+		panic("Error migrating database schema: " + err.Error())
+	}
 
 	e.GET("/produkty", func(c echo.Context) error {
 		var produkty []Produkt
