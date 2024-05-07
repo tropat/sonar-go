@@ -25,18 +25,18 @@ type Kategoria struct {
 	Nazwa string
 }
 
-func main() {
-	e := echo.New()
-
+func initializeDB() (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open("zad04.db"), &gorm.Config{})
 	if err != nil {
-		panic("Blad polaczenia z baza danych")
+		return nil, err
 	}
-	err = db.AutoMigrate(&Produkt{}, &Koszyk{}, &Kategoria{})
-	if err != nil {
-		panic("Error migrating database schema: " + err.Error())
+	if err := db.AutoMigrate(&Produkt{}, &Koszyk{}, &Kategoria{}); err != nil {
+		return nil, err
 	}
+	return db, nil
+}
 
+func setupRoutes(e *echo.Echo, db *gorm.DB) {
 	e.GET("/produkty", func(c echo.Context) error {
 		var produkty []Produkt
 		if err := db.Find(&produkty).Error; err != nil {
@@ -117,6 +117,17 @@ func main() {
 
 		return c.JSON(http.StatusOK, koszyk)
 	})
+}
+
+func main() {
+	e := echo.New()
+
+	db, err := initializeDB()
+	if err != nil {
+		panic("Blad polaczenia z baza danych: " + err.Error())
+	}
+
+	setupRoutes(e, db)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
